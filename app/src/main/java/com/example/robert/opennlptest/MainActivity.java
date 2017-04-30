@@ -1,6 +1,7 @@
 package com.example.robert.opennlptest;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -73,8 +74,26 @@ public class MainActivity extends AppCompatActivity {
     {
         TextView t = (TextView)findViewById(R.id.myTextView);
         EditText e = (EditText)findViewById(R.id.editText3);
+        final String query = e.getText().toString();
+
+        final Handler handler = new Handler();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                final String result = process(query);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        TextView t = (TextView)findViewById(R.id.myTextView);
+                        t.append("test done" + result);
+                    }
+                });
+            }
+        };
+
         t.append("\nTEST");
-        t.append(process(e.getText().toString()));
+        new Thread(runnable).start();
+
     }
 
     public String process(String request)
