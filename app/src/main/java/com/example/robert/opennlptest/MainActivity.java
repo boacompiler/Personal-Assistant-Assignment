@@ -8,6 +8,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import opennlp.tools.sentdetect.SentenceDetector;
@@ -42,9 +44,45 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-        //my stuff
 
-        String para = "Hello computer! I am Robert, i attend Farnborough College of Technology";
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void buttonOnClick(View v)
+    {
+        TextView t = (TextView)findViewById(R.id.myTextView);
+        EditText e = (EditText)findViewById(R.id.editText3);
+        t.append("\nTEST");
+        t.append(process(e.getText().toString()));
+    }
+
+    public String process(String request)
+    {
+//my stuff
+
+        //String para = "Hello computer! I am Robert, i attend Farnborough College of Technology";
+        String para = request;
 
         SentenceDetector _sentenceDetector = null;
         Tokenizer _tokenizer = null;
@@ -52,6 +90,8 @@ public class MainActivity extends AppCompatActivity {
         InputStream modelIn = null;
         InputStream modelInT = null;
         InputStream modelInN = null;
+
+        String out = "";
         try {
             // Loading sentence detection model
             modelIn = this.getAssets().open("en-sent.bin");
@@ -77,25 +117,23 @@ public class MainActivity extends AppCompatActivity {
             Span nameSpans[] = nameFinder.find(allTokens);
             //display
 
-            TextView t = (TextView)findViewById(R.id.myTextBox);
-            t.append("\nTEST");
 
             String[] sentences = _sentenceDetector.sentDetect(para);
 
             for(int i = 0;i<sentences.length;i++)
             {
-                t.append("\n" + sentences[i]);
+                out += "\n" + sentences[i];
             }
 
-            t.append("\n");
+            out += "\n";
 
             for(Span s: nameSpans)
             {
                 for(int i = s.getStart(); i< s.getEnd(); i++)
                 {
-                    t.append(allTokens[i] + " ");
+                    out += allTokens[i] + " ";
                 }
-                t.append("\n");
+                out += "\n";
             }
 
 
@@ -108,27 +146,6 @@ public class MainActivity extends AppCompatActivity {
                 } catch (final IOException e) {} // oh well!
             }
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+        return out;
     }
 }
