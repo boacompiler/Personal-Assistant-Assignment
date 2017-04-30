@@ -11,6 +11,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import opennlp.tools.sentdetect.SentenceDetector;
@@ -84,6 +85,8 @@ public class MainActivity extends AppCompatActivity {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
+                        ProgressBar p = (ProgressBar)findViewById(R.id.progressBar);
+                        p.setVisibility(View.INVISIBLE);
                         TextView t = (TextView)findViewById(R.id.myTextView);
                         t.append("test done" + result);
                     }
@@ -92,6 +95,8 @@ public class MainActivity extends AppCompatActivity {
         };
 
         t.append("\nTEST");
+        ProgressBar p = (ProgressBar)findViewById(R.id.progressBar);
+        p.setVisibility(View.VISIBLE);
         new Thread(runnable).start();
 
     }
