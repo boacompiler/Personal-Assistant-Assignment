@@ -31,6 +31,17 @@ import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
 
+    final static SentenceDetector mySentenceDetector;
+    final static Tokenizer myTokenizer;
+    final static NameFinderME myNameFinderME;
+
+    static {
+        mySentenceDetector = SetupSentenceDetector();
+        myTokenizer = SetupTokenizer();
+        myNameFinderME = SetupNameFinder();
+
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,7 +57,9 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-
+        mySentenceDetector = SetupSentenceDetector();
+        myTokenizer = SetupTokenizer();
+        myNameFinderME = SetupNameFinder();
     }
 
     @Override
@@ -76,6 +89,8 @@ public class MainActivity extends AppCompatActivity {
         TextView t = (TextView)findViewById(R.id.myTextView);
         EditText e = (EditText)findViewById(R.id.editText3);
         final String query = e.getText().toString();
+        final SentenceDetector = mySentenceDetector;
+
 
         final Handler handler = new Handler();
         Runnable runnable = new Runnable() {
@@ -101,65 +116,58 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public String process(String request)
+    public static SentenceDetector SetupSentenceDetector()
     {
-//my stuff
-
-        //String para = "Hello computer! I am Robert, i attend Farnborough College of Technology";
-        String para = request;
-
         SentenceDetector _sentenceDetector = null;
-        Tokenizer _tokenizer = null;
-
         InputStream modelIn = null;
-        InputStream modelInT = null;
-        InputStream modelInN = null;
-
-        String out = "";
-        try {
-            // Loading sentence detection model
+        try{
             modelIn = this.getAssets().open("en-sent.bin");
             final SentenceModel sentenceModel = new SentenceModel(modelIn);
             modelIn.close();
 
             _sentenceDetector = new SentenceDetectorME(sentenceModel);
+        } catch (final IOException ioe) {
+            ioe.printStackTrace();
+        } finally {
+            if (modelIn != null) {
+                try {
+                    modelIn.close();
+                } catch (final IOException e) {} // oh well!
+            }
+        }
+        return _sentenceDetector;
+    }
 
-            // Loading tokenizer model
-            modelInT = this.getAssets().open("en-token.bin");
-            final TokenizerModel tokenModel = new TokenizerModel(modelInT);
-            modelInT.close();
+    public Tokenizer SetupTokenizer()
+    {
+        Tokenizer _tokenizer = null;
+        InputStream modelIn = null;
+        try{
+            modelIn = this.getAssets().open("en-token.bin");
+            final TokenizerModel tokenModel = new TokenizerModel(modelIn);
+            modelIn.close();
 
             _tokenizer = new TokenizerME(tokenModel);
-
-            //loading name finder
-            modelInN = getAssets().open("en-ner-organization.bin");
-            TokenNameFinderModel model = new TokenNameFinderModel(modelInN);
-            NameFinderME nameFinder = new NameFinderME(model);
-
-            String[] allTokens = _tokenizer.tokenize(para);
-
-            Span nameSpans[] = nameFinder.find(allTokens);
-            //display
-
-
-            String[] sentences = _sentenceDetector.sentDetect(para);
-
-            for(int i = 0;i<sentences.length;i++)
-            {
-                out += "\n" + sentences[i];
+        } catch (final IOException ioe) {
+            ioe.printStackTrace();
+        } finally {
+            if (modelIn != null) {
+                try {
+                    modelIn.close();
+                } catch (final IOException e) {} // oh well!
             }
+        }
+        return _tokenizer;
+    }
 
-            out += "\n";
-
-            for(Span s: nameSpans)
-            {
-                for(int i = s.getStart(); i< s.getEnd(); i++)
-                {
-                    out += allTokens[i] + " ";
-                }
-                out += "\n";
-            }
-
+    public NameFinderME SetupNameFinder()
+    {
+        NameFinderME nameFinder = null;
+        InputStream modelIn = null;
+        try{
+            modelIn = getAssets().open("en-ner-person.bin");
+            TokenNameFinderModel model = new TokenNameFinderModel(modelIn);
+            nameFinder = new NameFinderME(model);
 
         } catch (final IOException ioe) {
             ioe.printStackTrace();
@@ -170,6 +178,53 @@ public class MainActivity extends AppCompatActivity {
                 } catch (final IOException e) {} // oh well!
             }
         }
+        return nameFinder;
+    }
+
+    public String process(String request, SentenceDetector sd, Tokenizer t, NameFinderME nf)
+    {
+//my stuff
+
+        //String para = "Hello computer! I am Robert, i attend Farnborough College of Technology";
+        String para = request;
+
+        SentenceDetector _sentenceDetector = null;
+        Tokenizer _tokenizer = null;
+        NameFinderME nameFinder = null;
+
+        InputStream modelIn = null;
+
+        String out = "";
+
+        // Loading sentence detection model
+        // Loading tokenizer model
+
+        //loading name finder
+
+        String[] allTokens = _tokenizer.tokenize(para);
+
+        Span nameSpans[] = nameFinder.find(allTokens);
+        //display
+
+
+        String[] sentences = _sentenceDetector.sentDetect(para);
+
+        for(int i = 0;i<sentences.length;i++)
+        {
+            out += "\n" + sentences[i];
+        }
+
+        out += "\n";
+
+        for(Span s: nameSpans)
+        {
+            for(int i = s.getStart(); i< s.getEnd(); i++)
+            {
+                out += allTokens[i] + " ";
+            }
+            out += "\n";
+        }
+
         return out;
     }
 }
