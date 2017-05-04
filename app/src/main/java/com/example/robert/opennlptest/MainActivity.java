@@ -13,6 +13,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.content.Context;
 
 import opennlp.tools.sentdetect.SentenceDetector;
 import opennlp.tools.sentdetect.SentenceDetectorME;
@@ -35,16 +36,18 @@ public class MainActivity extends AppCompatActivity {
     final static Tokenizer myTokenizer;
     final static NameFinderME myNameFinderME;
 
-    static {
+    static{
         mySentenceDetector = SetupSentenceDetector();
         myTokenizer = SetupTokenizer();
         myNameFinderME = SetupNameFinder();
-
     }
 
+    private static Context mContext;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mContext = this;
+
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -57,9 +60,9 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-        mySentenceDetector = SetupSentenceDetector();
-        myTokenizer = SetupTokenizer();
-        myNameFinderME = SetupNameFinder();
+//        mySentenceDetector = SetupSentenceDetector();
+//        myTokenizer = SetupTokenizer();
+//        myNameFinderME = SetupNameFinder();
     }
 
     @Override
@@ -89,14 +92,14 @@ public class MainActivity extends AppCompatActivity {
         TextView t = (TextView)findViewById(R.id.myTextView);
         EditText e = (EditText)findViewById(R.id.editText3);
         final String query = e.getText().toString();
-        final SentenceDetector = mySentenceDetector;
+        //final SentenceDetector sd = mySentenceDetector;
 
 
         final Handler handler = new Handler();
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                final String result = process(query);
+                final String result = process(query, mySentenceDetector, myTokenizer, myNameFinderME);
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -121,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
         SentenceDetector _sentenceDetector = null;
         InputStream modelIn = null;
         try{
-            modelIn = this.getAssets().open("en-sent.bin");
+            modelIn = App.getContext().getResources().getAssets().open("en-sent.bin");
             final SentenceModel sentenceModel = new SentenceModel(modelIn);
             modelIn.close();
 
@@ -138,12 +141,12 @@ public class MainActivity extends AppCompatActivity {
         return _sentenceDetector;
     }
 
-    public Tokenizer SetupTokenizer()
+    public static Tokenizer SetupTokenizer()
     {
         Tokenizer _tokenizer = null;
         InputStream modelIn = null;
         try{
-            modelIn = this.getAssets().open("en-token.bin");
+            modelIn = App.getContext().getResources().getAssets().open("en-token.bin");
             final TokenizerModel tokenModel = new TokenizerModel(modelIn);
             modelIn.close();
 
@@ -160,12 +163,12 @@ public class MainActivity extends AppCompatActivity {
         return _tokenizer;
     }
 
-    public NameFinderME SetupNameFinder()
+    public static NameFinderME SetupNameFinder()
     {
         NameFinderME nameFinder = null;
         InputStream modelIn = null;
         try{
-            modelIn = getAssets().open("en-ner-person.bin");
+            modelIn = App.getContext().getResources().getAssets().open("en-ner-person.bin");
             TokenNameFinderModel model = new TokenNameFinderModel(modelIn);
             nameFinder = new NameFinderME(model);
 
@@ -188,11 +191,9 @@ public class MainActivity extends AppCompatActivity {
         //String para = "Hello computer! I am Robert, i attend Farnborough College of Technology";
         String para = request;
 
-        SentenceDetector _sentenceDetector = null;
-        Tokenizer _tokenizer = null;
-        NameFinderME nameFinder = null;
-
-        InputStream modelIn = null;
+        SentenceDetector _sentenceDetector = sd;
+        Tokenizer _tokenizer = t;
+        NameFinderME nameFinder = nf;
 
         String out = "";
 
