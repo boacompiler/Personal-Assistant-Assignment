@@ -15,6 +15,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.content.Context;
 
+import opennlp.tools.postag.POSModel;
+import opennlp.tools.postag.POSTagger;
+import opennlp.tools.postag.POSTaggerME;
 import opennlp.tools.sentdetect.SentenceDetector;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
@@ -35,11 +38,13 @@ public class MainActivity extends AppCompatActivity {
     final static SentenceDetector mySentenceDetector;
     final static Tokenizer myTokenizer;
     final static NameFinderME myNameFinderME;
+    final static POSTagger myPOSTagger;
 
     static{
         mySentenceDetector = SetupSentenceDetector();
         myTokenizer = SetupTokenizer();
         myNameFinderME = SetupNameFinder();
+        myPOSTagger = SetupPOSTagger();
     }
 
     private static Context mContext;
@@ -99,14 +104,14 @@ public class MainActivity extends AppCompatActivity {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                final String result = process(query, mySentenceDetector, myTokenizer, myNameFinderME);
+                final String result = process(query, mySentenceDetector, myTokenizer, myNameFinderME, myPOSTagger);
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
                         ProgressBar p = (ProgressBar)findViewById(R.id.progressBar);
                         p.setVisibility(View.INVISIBLE);
                         TextView t = (TextView)findViewById(R.id.myTextView);
-                        t.append("test done" + result);
+                        t.setText("test done" + result);
                     }
                 });
             }
@@ -171,6 +176,7 @@ public class MainActivity extends AppCompatActivity {
             modelIn = App.getContext().getResources().getAssets().open("en-ner-person.bin");
             TokenNameFinderModel model = new TokenNameFinderModel(modelIn);
             nameFinder = new NameFinderME(model);
+            modelIn.close();
 
         } catch (final IOException ioe) {
             ioe.printStackTrace();
@@ -184,7 +190,32 @@ public class MainActivity extends AppCompatActivity {
         return nameFinder;
     }
 
-    public String process(String request, SentenceDetector sd, Tokenizer t, NameFinderME nf)
+    public static POSTagger SetupPOSTagger()
+    {
+        POSTagger _posTagger = null;
+
+        InputStream modelIn = null;
+
+        try {
+            // Loading tokenizer model
+            modelIn = App.getContext().getResources().getAssets().open("en-pos-maxent.bin");
+            final POSModel posModel = new POSModel(modelIn);
+            _posTagger = new POSTaggerME(posModel);
+            modelIn.close();
+
+        } catch (final IOException ioe) {
+            ioe.printStackTrace();
+        } finally {
+            if (modelIn != null) {
+                try {
+                    modelIn.close();
+                } catch (final IOException e) {} // oh well!
+            }
+        }
+        return _posTagger;
+    }
+
+    public String process(String request, SentenceDetector sd, Tokenizer t, NameFinderME nf, POSTagger pos)
     {
 //my stuff
 
@@ -194,6 +225,30 @@ public class MainActivity extends AppCompatActivity {
         SentenceDetector _sentenceDetector = sd;
         Tokenizer _tokenizer = t;
         NameFinderME nameFinder = nf;
+        //POSTagger _posTagger = pos;
+
+        POSTagger _posTagger = null;
+
+        InputStream modelIn = null;
+        try {
+            // Loading tokenizer model
+            modelIn = App.getContext().getResources().getAssets().open("en-pos-maxent.bin");
+            final POSModel posModel = new POSModel(modelIn);
+            modelIn.close();
+
+            _posTagger = new POSTaggerME(posModel);
+
+
+
+        } catch (final IOException ioe) {
+            ioe.printStackTrace();
+        } finally {
+            if (modelIn != null) {
+                try {
+                    modelIn.close();
+                } catch (final IOException e) {} // oh well!
+            }
+        }
 
         String out = "";
 
@@ -205,10 +260,14 @@ public class MainActivity extends AppCompatActivity {
         String[] allTokens = _tokenizer.tokenize(para);
 
         Span nameSpans[] = nameFinder.find(allTokens);
+        String[] sentences = _sentenceDetector.sentDetect(para);
+        //String[] tokens = _tokenizer.tokenize(sentences[0]);
+        String[] parts = _posTagger.tag(allTokens);
+        //String test = _posTagger.toString();
         //display
 
 
-        String[] sentences = _sentenceDetector.sentDetect(para);
+
 
         for(int i = 0;i<sentences.length;i++)
         {
@@ -216,6 +275,16 @@ public class MainActivity extends AppCompatActivity {
         }
 
         out += "\n";
+
+        for(int i = 0;i< allTokens.length;i++)
+        {
+            out += "["+allTokens[i]+"]";
+        }
+        out += "\n";
+        for(int i =0;i<parts.length;i++)
+        {
+            out+="["+parts[i]+"]";
+        }
 
         for(Span s: nameSpans)
         {
@@ -225,6 +294,7 @@ public class MainActivity extends AppCompatActivity {
             }
             out += "\n";
         }
+        out += "\n";
 
         return out;
     }
