@@ -198,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             // Loading tokenizer model
-            modelIn = App.getContext().getResources().getAssets().open("en-pos-maxent.bin");
+            modelIn = App.getContext().getResources().getAssets().open("en-pos-maxent.zip");
             final POSModel posModel = new POSModel(modelIn);
             _posTagger = new POSTaggerME(posModel);
             modelIn.close();
@@ -225,30 +225,7 @@ public class MainActivity extends AppCompatActivity {
         SentenceDetector _sentenceDetector = sd;
         Tokenizer _tokenizer = t;
         NameFinderME nameFinder = nf;
-        //POSTagger _posTagger = pos;
-
-        POSTagger _posTagger = null;
-
-        InputStream modelIn = null;
-        try {
-            // Loading tokenizer model
-            modelIn = App.getContext().getResources().getAssets().open("en-pos-maxent.bin");
-            final POSModel posModel = new POSModel(modelIn);
-            modelIn.close();
-
-            _posTagger = new POSTaggerME(posModel);
-
-
-
-        } catch (final IOException ioe) {
-            ioe.printStackTrace();
-        } finally {
-            if (modelIn != null) {
-                try {
-                    modelIn.close();
-                } catch (final IOException e) {} // oh well!
-            }
-        }
+        POSTagger _posTagger = pos;
 
         String out = "";
 
@@ -285,6 +262,7 @@ public class MainActivity extends AppCompatActivity {
         {
             out+="["+parts[i]+"]";
         }
+        out += "\n";
 
         for(Span s: nameSpans)
         {
