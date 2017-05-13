@@ -1,7 +1,9 @@
 package com.example.robert.opennlptest;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.speech.RecognizerIntent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -32,6 +34,7 @@ import opennlp.tools.util.Span;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -94,33 +97,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void buttonOnClick(View v)
     {
-        TextView t = (TextView)findViewById(R.id.myTextView);
         EditText e = (EditText)findViewById(R.id.editText3);
-        final String query = e.getText().toString();
-        //final SentenceDetector sd = mySentenceDetector;
-
-
-        final Handler handler = new Handler();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final String result = process(query, mySentenceDetector, myTokenizer, myNameFinderME, myPOSTagger);
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        ProgressBar p = (ProgressBar)findViewById(R.id.progressBar);
-                        p.setVisibility(View.INVISIBLE);
-                        TextView t = (TextView)findViewById(R.id.myTextView);
-                        t.setText("test done" + result);
-                    }
-                });
-            }
-        };
-
-        t.append("\nTEST");
-        ProgressBar p = (ProgressBar)findViewById(R.id.progressBar);
-        p.setVisibility(View.VISIBLE);
-        new Thread(runnable).start();
+        String query = e.getText().toString();
+        ThreadedProcess(query);
 
     }
 
@@ -276,4 +255,70 @@ public class MainActivity extends AppCompatActivity {
 
         return out;
     }
+
+    public void ThreadedProcess(String q)
+    {
+        final String query = q;
+        //final SentenceDetector sd = mySentenceDetector;
+        TextView t = (TextView)findViewById(R.id.myTextView);
+
+        final Handler handler = new Handler();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                final String result = process(query, mySentenceDetector, myTokenizer, myNameFinderME, myPOSTagger);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        ProgressBar p = (ProgressBar)findViewById(R.id.progressBar);
+                        p.setVisibility(View.INVISIBLE);
+                        TextView t = (TextView)findViewById(R.id.myTextView);
+                        t.setText("test done" + result);
+                    }
+                });
+            }
+        };
+
+        t.append("\nTEST");
+        ProgressBar p = (ProgressBar)findViewById(R.id.progressBar);
+        p.setVisibility(View.VISIBLE);
+        new Thread(runnable).start();
+    }
+
+    private static final int SPEECH_REQUEST_CODE = 0;
+
+    // Create an intent that can start the Speech Recognizer activity
+    private void displaySpeechRecognizer() {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+// Start the activity, the intent will be populated with the speech text
+        startActivityForResult(intent, SPEECH_REQUEST_CODE);
+    }
+
+    // This callback is invoked when the Speech Recognizer returns.
+// This is where you process the intent and extract the speech text from the intent.
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode,
+                                    Intent data) {
+        if (requestCode == SPEECH_REQUEST_CODE && resultCode == RESULT_OK) {
+            List<String> results = data.getStringArrayListExtra(
+                    RecognizerIntent.EXTRA_RESULTS);
+            String spokenText = results.get(0);
+            // Do something with spokenText
+            TextView t = (TextView)findViewById(R.id.myTextView);
+            t.setText("test done " + spokenText);
+            ThreadedProcess(spokenText);
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public void SpeechOnClick(View v)
+    {
+        TextView t = (TextView)findViewById(R.id.myTextView);
+        t.setText("start speaking");
+        displaySpeechRecognizer();
+    }
 }
+
+

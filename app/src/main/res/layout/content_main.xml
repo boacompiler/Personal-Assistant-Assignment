@@ -72,5 +72,15 @@
             android:layout_marginTop="105dp"
             android:visibility="invisible" />
 
+        <Button
+            android:id="@+id/button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignEnd="@+id/button4"
+            android:layout_alignRight="@+id/button4"
+            android:layout_alignTop="@+id/editText4"
+            android:onClick="SpeechOnClick"
+            android:text="Speak" />
+
     </RelativeLayout>
 </android.support.constraint.ConstraintLayout>
