@@ -1,9 +1,13 @@
 package com.example.robert.opennlptest;
 
 import android.content.Intent;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.RecognizerIntent;
+import android.speech.tts.TextToSpeech;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -35,19 +39,22 @@ import opennlp.tools.util.Span;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-    final static SentenceDetector mySentenceDetector;
-    final static Tokenizer myTokenizer;
-    final static NameFinderME myNameFinderME;
-    final static POSTagger myPOSTagger;
+    TextToSpeech tts;
+
+     static SentenceDetector mySentenceDetector;
+     static Tokenizer myTokenizer;
+     static NameFinderME myNameFinderME;
+     static POSTagger myPOSTagger;
 
     static{
-        mySentenceDetector = SetupSentenceDetector();
-        myTokenizer = SetupTokenizer();
-        myNameFinderME = SetupNameFinder();
-        myPOSTagger = SetupPOSTagger();
+//        mySentenceDetector = SetupSentenceDetector();
+//        myTokenizer = SetupTokenizer();
+//        myNameFinderME = SetupNameFinder();
+//        myPOSTagger = SetupPOSTagger();
     }
 
     private static Context mContext;
@@ -71,6 +78,18 @@ public class MainActivity extends AppCompatActivity {
 //        mySentenceDetector = SetupSentenceDetector();
 //        myTokenizer = SetupTokenizer();
 //        myNameFinderME = SetupNameFinder();
+
+
+        tts = new TextToSpeech(MainActivity.this, new TextToSpeech.OnInitListener(){
+            @Override
+            public void onInit(int i){
+                //tts.speak("Why is this not working", TextToSpeech.QUEUE_FLUSH, null);
+                System.out.print("this print statement needs to be here");
+            }
+        });
+        tts.setLanguage(Locale.UK);
+
+        //Say("process completed");
     }
 
     @Override
@@ -309,16 +328,28 @@ public class MainActivity extends AppCompatActivity {
             TextView t = (TextView)findViewById(R.id.myTextView);
             t.setText("test done " + spokenText);
             ThreadedProcess(spokenText);
+            //Say("process completed");
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
 
     public void SpeechOnClick(View v)
     {
-        TextView t = (TextView)findViewById(R.id.myTextView);
-        t.setText("start speaking");
-        displaySpeechRecognizer();
+        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+        r.play();
+
+        tts.speak("Why is this not working", TextToSpeech.QUEUE_FLUSH, null);
+
+//        TextView t = (TextView)findViewById(R.id.myTextView);
+//        t.setText("start speaking");
+//        displaySpeechRecognizer();
     }
+
+//    public void Say(String text)
+//    {
+//        tts.speak(text, TextToSpeech.QUEUE_ADD, null);
+//    }
 }
 
 
