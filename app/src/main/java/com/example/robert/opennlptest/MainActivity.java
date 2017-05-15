@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.RecognizerIntent;
@@ -12,6 +13,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -41,22 +43,25 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 
-import javax.xml.*;
+import java.io.*;
+import java.net.*;
+import org.w3c.dom.*;
+import javax.xml.parsers.*;
 
 public class MainActivity extends AppCompatActivity {
 
     TextToSpeech tts;
 
-     static SentenceDetector mySentenceDetector;
-     static Tokenizer myTokenizer;
-     static NameFinderME myNameFinderME;
-     static POSTagger myPOSTagger;
+//     static SentenceDetector mySentenceDetector;
+//     static Tokenizer myTokenizer;
+//     static NameFinderME myNameFinderME;
+//     static POSTagger myPOSTagger;
 
     static{
-        mySentenceDetector = SetupSentenceDetector();
-        myTokenizer = SetupTokenizer();
-        myNameFinderME = SetupNameFinder();
-        myPOSTagger = SetupPOSTagger();
+//        mySentenceDetector = SetupSentenceDetector();
+//        myTokenizer = SetupTokenizer();
+//        myNameFinderME = SetupNameFinder();
+//        myPOSTagger = SetupPOSTagger();
     }
 
     private static Context mContext;
@@ -287,7 +292,7 @@ public class MainActivity extends AppCompatActivity {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                final String result = process(query, mySentenceDetector, myTokenizer, myNameFinderME, myPOSTagger);
+                final String result = "lel";//process(query, mySentenceDetector, myTokenizer, myNameFinderME, myPOSTagger);
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -329,7 +334,10 @@ public class MainActivity extends AppCompatActivity {
             // Do something with spokenText
             TextView t = (TextView)findViewById(R.id.myTextView);
             t.setText("test done " + spokenText);
-            tts.speak(spokenText, TextToSpeech.QUEUE_FLUSH, null);
+            String urlformat = spokenText.replace(" ","+");
+            String result = SearchWiki(urlformat);
+
+            //tts.speak(spokenText, TextToSpeech.QUEUE_FLUSH, null);
             ThreadedProcess(spokenText);
             //Say("process completed");
         }
@@ -347,6 +355,50 @@ public class MainActivity extends AppCompatActivity {
         TextView t = (TextView)findViewById(R.id.myTextView);
         t.setText("start speaking");
         displaySpeechRecognizer();
+        //String result = SearchWiki("Donald+Trump");
+        Log.d("wiki", "SpeechOnClick: ");
+        //tts.speak(result, TextToSpeech.QUEUE_FLUSH, null);
+    }
+
+    public String SearchWiki(String title)
+    {
+        String url = "https://en.wikipedia.org/w/api.php?action=query&format=xml&prop=extracts&titles=LEGO&redirects=1&exsentences=1&explaintext=1";
+        String result = "No Result";
+
+//        XMLGetter xg = new XMLGetter();
+//        xg.execute("LEGO");
+
+        XMLGetter xg =(XMLGetter) new XMLGetter(new XMLGetter.AsyncResponse() {
+            @Override
+            public void processFinish(Document output) {
+                Log.d("wiki", "onPostExecute: done even more ");
+                tts.speak(output.getElementsByTagName("extract").item(0).getTextContent(), TextToSpeech.QUEUE_FLUSH, null);
+            }
+        }).execute(title);
+
+//        try
+//        {
+//            Log.d("wiki", "SpeechOnClick: 1");
+//            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+//            Log.d("wiki", "SpeechOnClick: 2");
+//            dbFactory.setNamespaceAware(true);
+//            Log.d("wiki", "SpeechOnClick: 3");
+//            DocumentBuilder dbb = dbFactory.newDocumentBuilder();
+//            Log.d("wiki", "SpeechOnClick: 3.1");
+//            URL xmlurl = new URL(url);
+//            Log.d("wiki", "SpeechOnClick: 3.2");
+//            InputStream in = xmlurl.openStream();
+//            Log.d("wiki", "SpeechOnClick: 3.3");
+//            Document doc = dbb.parse(in);
+//            Log.d("wiki", "SpeechOnClick: 4");
+//            result = doc.getElementsByTagName("extract").item(0).getTextContent();
+//            Log.d("wiki", "SpeechOnClick: 5");
+//        }
+//        catch(Exception e)
+//        {
+//            result = ("error: " + e.getMessage());
+//        }
+        return result;
     }
 
 //    public void Say(String text)
@@ -354,5 +406,48 @@ public class MainActivity extends AppCompatActivity {
 //        tts.speak(text, TextToSpeech.QUEUE_ADD, null);
 //    }
 }
+
+class XMLGetter extends AsyncTask<String,Integer,Void> {
+
+    Document doc;
+
+    public interface AsyncResponse {
+        void processFinish(Document output);
+    }
+
+    public AsyncResponse delegate = null;
+
+    public XMLGetter(AsyncResponse delegate)
+    {
+        this.delegate = delegate;
+    }
+
+    protected Void doInBackground(String...params){
+        URL url;
+
+        try {
+            url = new URL("https://en.wikipedia.org/w/api.php?action=query&format=xml&prop=extracts&titles="+params[0]+"&redirects=1&exsentences=1&explaintext=1");
+            //HttpURLConnection con=(HttpURLConnection)url.openConnection();
+            //InputStream is=con.getInputStream();
+            //text = is;
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            dbFactory.setNamespaceAware(true);
+            doc = dbFactory.newDocumentBuilder().parse(url.openStream());
+            Log.d("wiki", "onPostExecute: doing");
+        }catch (Exception e) {
+            Log.d("wiki", "onPostExecute: " + e.getMessage());
+        }
+
+        return null;
+    }
+
+    protected void onPostExecute(Void result){
+        //use "text"
+        Log.d("wiki", "onPostExecute: done");
+        delegate.processFinish(doc);
+    }
+}
+
+
 
 
