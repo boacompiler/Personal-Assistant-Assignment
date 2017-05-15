@@ -41,6 +41,8 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 
+import javax.xml.*;
+
 public class MainActivity extends AppCompatActivity {
 
     TextToSpeech tts;
@@ -51,10 +53,10 @@ public class MainActivity extends AppCompatActivity {
      static POSTagger myPOSTagger;
 
     static{
-//        mySentenceDetector = SetupSentenceDetector();
-//        myTokenizer = SetupTokenizer();
-//        myNameFinderME = SetupNameFinder();
-//        myPOSTagger = SetupPOSTagger();
+        mySentenceDetector = SetupSentenceDetector();
+        myTokenizer = SetupTokenizer();
+        myNameFinderME = SetupNameFinder();
+        myPOSTagger = SetupPOSTagger();
     }
 
     private static Context mContext;
@@ -327,6 +329,7 @@ public class MainActivity extends AppCompatActivity {
             // Do something with spokenText
             TextView t = (TextView)findViewById(R.id.myTextView);
             t.setText("test done " + spokenText);
+            tts.speak(spokenText, TextToSpeech.QUEUE_FLUSH, null);
             ThreadedProcess(spokenText);
             //Say("process completed");
         }
@@ -339,11 +342,11 @@ public class MainActivity extends AppCompatActivity {
         Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
         r.play();
 
-        tts.speak("Why is this not working", TextToSpeech.QUEUE_FLUSH, null);
+        //tts.speak("Why is this not working", TextToSpeech.QUEUE_FLUSH, null);
 
-//        TextView t = (TextView)findViewById(R.id.myTextView);
-//        t.setText("start speaking");
-//        displaySpeechRecognizer();
+        TextView t = (TextView)findViewById(R.id.myTextView);
+        t.setText("start speaking");
+        displaySpeechRecognizer();
     }
 
 //    public void Say(String text)
