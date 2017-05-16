@@ -370,10 +370,15 @@ public class MainActivity extends AppCompatActivity {
             public void processFinish(String title, Document output) {
                 Log.d("wiki", "onPostExecute: done even more ");
                 Log.d("wiki message", "processFinish:  started");
-                Log.d("wiki message", "processFinish:  missing: "+ output.getElementsByTagName("page").item(0).getAttributes().item(3).getNodeName());
+                Log.d("wiki message", "processFinish: " + (output == null));
+                //Log.d("wiki message", "processFinish:  missing: "+ output.getElementsByTagName("page").item(0).getAttributes().item(3).getNodeName());
                 String message = "Sorry, somethings gone wrong";
                 //Log.d("message none", "processFinish: "+output.getElementsByTagName("page").item(0).getAttributes().item(1).toString());
-                if(output.getElementsByTagName("page").item(0).getAttributes().item(3).getNodeName().equals("missing"))
+                if(output == null)
+                {
+                    message = "I can't seem to access my data right now, try checking the network.";
+                }
+                else if(output.getElementsByTagName("page").item(0).getAttributes().item(3).getNodeName().equals("missing"))
                 {
                     message = "I can't find anything on "+title;
                 }
