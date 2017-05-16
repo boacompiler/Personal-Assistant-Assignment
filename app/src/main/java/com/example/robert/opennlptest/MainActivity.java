@@ -334,8 +334,8 @@ public class MainActivity extends AppCompatActivity {
             // Do something with spokenText
             TextView t = (TextView)findViewById(R.id.myTextView);
             t.setText("test done " + spokenText);
-            String urlformat = spokenText.replace(" ","+");
-            String result = SearchWiki(urlformat);
+
+            String result = SearchWiki(spokenText);
 
             //tts.speak(spokenText, TextToSpeech.QUEUE_FLUSH, null);
             ThreadedProcess(spokenText);
@@ -362,57 +362,55 @@ public class MainActivity extends AppCompatActivity {
 
     public String SearchWiki(String title)
     {
-        String url = "https://en.wikipedia.org/w/api.php?action=query&format=xml&prop=extracts&titles=LEGO&redirects=1&exsentences=1&explaintext=1";
+        //String url = "https://en.wikipedia.org/w/api.php?action=query&format=xml&prop=extracts%7Ccategories&titles=LEGO&redirects=1&exsentences=1&explaintext=1";
         String result = "No Result";
-
-//        XMLGetter xg = new XMLGetter();
-//        xg.execute("LEGO");
 
         XMLGetter xg =(XMLGetter) new XMLGetter(new XMLGetter.AsyncResponse() {
             @Override
-            public void processFinish(Document output) {
+            public void processFinish(String title, Document output) {
                 Log.d("wiki", "onPostExecute: done even more ");
-                tts.speak(output.getElementsByTagName("extract").item(0).getTextContent(), TextToSpeech.QUEUE_FLUSH, null);
+                Log.d("wiki message", "processFinish:  started");
+                Log.d("wiki message", "processFinish:  missing: "+ output.getElementsByTagName("page").item(0).getAttributes().item(3).getNodeName());
+                String message = "Sorry, somethings gone wrong";
+                //Log.d("message none", "processFinish: "+output.getElementsByTagName("page").item(0).getAttributes().item(1).toString());
+                if(output.getElementsByTagName("page").item(0).getAttributes().item(3).getNodeName().equals("missing"))
+                {
+                    message = "I can't find anything on "+title;
+                }
+                else
+                {
+                    Log.d("wiki message", "processFinish:  message: "+output.getElementsByTagName("extract").item(0).getTextContent());
+                    Log.d("wiki message", "processFinish:  ambiguous: " + output.getElementsByTagName("cl").getLength());
+                    Log.d("wiki message", "processFinish:  ambiguous: " + output.getElementsByTagName("cl").item(0).getAttributes().getLength());
+                    Log.d("wiki message", "processFinish:  ambiguous: " + output.getElementsByTagName("cl").item(0).getAttributes().item(0).getNodeValue());
+                    message = output.getElementsByTagName("extract").item(0).getTextContent();
+                    for(int i=0;i < output.getElementsByTagName("cl").getLength();i++)
+                    {
+                        if(output.getElementsByTagName("cl").item(i).getAttributes().item(1).getTextContent().equals("Category:All article disambiguation pages"))
+                        {
+                            message = "please be more specific, "+title+" is ambiguous." ;
+                            break;
+                        }
+                    }
+                    //Log.d("message ambiguous", "processFinish: "+output.getElementsByTagName("cl").item(0).getAttributes().item(1).getTextContent());
+                }
+
+                tts.speak(message, TextToSpeech.QUEUE_FLUSH, null);
             }
         }).execute(title);
 
-//        try
-//        {
-//            Log.d("wiki", "SpeechOnClick: 1");
-//            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-//            Log.d("wiki", "SpeechOnClick: 2");
-//            dbFactory.setNamespaceAware(true);
-//            Log.d("wiki", "SpeechOnClick: 3");
-//            DocumentBuilder dbb = dbFactory.newDocumentBuilder();
-//            Log.d("wiki", "SpeechOnClick: 3.1");
-//            URL xmlurl = new URL(url);
-//            Log.d("wiki", "SpeechOnClick: 3.2");
-//            InputStream in = xmlurl.openStream();
-//            Log.d("wiki", "SpeechOnClick: 3.3");
-//            Document doc = dbb.parse(in);
-//            Log.d("wiki", "SpeechOnClick: 4");
-//            result = doc.getElementsByTagName("extract").item(0).getTextContent();
-//            Log.d("wiki", "SpeechOnClick: 5");
-//        }
-//        catch(Exception e)
-//        {
-//            result = ("error: " + e.getMessage());
-//        }
         return result;
     }
 
-//    public void Say(String text)
-//    {
-//        tts.speak(text, TextToSpeech.QUEUE_ADD, null);
-//    }
 }
 
 class XMLGetter extends AsyncTask<String,Integer,Void> {
 
     Document doc;
+    String title;
 
     public interface AsyncResponse {
-        void processFinish(Document output);
+        void processFinish(String title, Document output);
     }
 
     public AsyncResponse delegate = null;
@@ -423,10 +421,12 @@ class XMLGetter extends AsyncTask<String,Integer,Void> {
     }
 
     protected Void doInBackground(String...params){
+        title = params[0];
+        String urlformat = title.replace(" ","+");
         URL url;
 
         try {
-            url = new URL("https://en.wikipedia.org/w/api.php?action=query&format=xml&prop=extracts&titles="+params[0]+"&redirects=1&exsentences=1&explaintext=1");
+            url = new URL("https://en.wikipedia.org/w/api.php?action=query&format=xml&prop=extracts%7Ccategories&titles="+urlformat+"&redirects=1&exsentences=1&explaintext=1");
             //HttpURLConnection con=(HttpURLConnection)url.openConnection();
             //InputStream is=con.getInputStream();
             //text = is;
@@ -444,7 +444,7 @@ class XMLGetter extends AsyncTask<String,Integer,Void> {
     protected void onPostExecute(Void result){
         //use "text"
         Log.d("wiki", "onPostExecute: done");
-        delegate.processFinish(doc);
+        delegate.processFinish(title, doc);
     }
 }
 
