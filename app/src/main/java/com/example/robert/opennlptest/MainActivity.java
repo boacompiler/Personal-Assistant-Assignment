@@ -23,6 +23,11 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.content.Context;
 
+import opennlp.tools.parser.AbstractBottomUpParser;
+import opennlp.tools.parser.Parse;
+import opennlp.tools.parser.ParserFactory;
+import opennlp.tools.parser.ParserModel;
+import opennlp.tools.parser.Parser;
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTagger;
 import opennlp.tools.postag.POSTaggerME;
@@ -53,13 +58,13 @@ public class MainActivity extends AppCompatActivity {
     TextToSpeech tts;
 
 //     static SentenceDetector mySentenceDetector;
-//     static Tokenizer myTokenizer;
+     static Tokenizer myTokenizer;
 //     static NameFinderME myNameFinderME;
 //     static POSTagger myPOSTagger;
 
     static{
 //        mySentenceDetector = SetupSentenceDetector();
-//        myTokenizer = SetupTokenizer();
+        myTokenizer = SetupTokenizer();
 //        myNameFinderME = SetupNameFinder();
 //        myPOSTagger = SetupPOSTagger();
     }
@@ -335,7 +340,10 @@ public class MainActivity extends AppCompatActivity {
             TextView t = (TextView)findViewById(R.id.myTextView);
             t.setText("test done " + spokenText);
 
-            String result = SearchWiki(spokenText);
+            String result = SearchWiki(spokenText);//TODO what i going on with this return?
+
+            Parse myParse = parseSentence(spokenText, myTokenizer);
+            myParse.show();
 
             //tts.speak(spokenText, TextToSpeech.QUEUE_FLUSH, null);
             ThreadedProcess(spokenText);
@@ -407,6 +415,60 @@ public class MainActivity extends AppCompatActivity {
         return result;
     }
 
+    private static Parse parseSentence(final String text, Tokenizer _tokenizer) {
+        final Parse p = new Parse(text,
+                // a new span covering the entire text
+                new Span(0, text.length()),
+                // the label for the top if an incomplete node
+                AbstractBottomUpParser.INC_NODE,
+                // the probability of this parse...uhhh...?
+                1,
+                // the token index of the head of this parse
+                0);
+
+        // make sure to initialize the _tokenizer correctly
+        final Span[] spans = _tokenizer.tokenizePos(text);
+
+        for (int idx=0; idx < spans.length; idx++) {
+            final Span span = spans[idx];
+            // flesh out the parse with individual token sub-parses
+            p.insert(new Parse(text,
+                    span,
+                    AbstractBottomUpParser.TOK_NODE,
+                    0,
+                    idx));
+        }
+
+        Parse actualParse = parse(p);
+        return actualParse;
+    }
+
+    private static Parser _parser = null;
+
+    private static Parse parse(final Parse p) {
+        // lazy initializer
+        if (_parser == null) {
+            InputStream modelInP = null;
+            try {
+                // Loading the parser model
+                modelInP = App.getContext().getResources().getAssets().open("en-parser-chunking.bin");
+                final ParserModel parseModel = new ParserModel(modelInP);
+                modelInP.close();
+
+                _parser = ParserFactory.create(parseModel);
+            } catch (final IOException ioe) {
+                ioe.printStackTrace();
+            } finally {
+                if (modelInP != null) {
+                    try {
+                        modelInP.close();
+                    } catch (final IOException e) {} // oh well!
+                }
+            }
+        }
+        return _parser.parse(p);
+    }
+
 }
 
 class XMLGetter extends AsyncTask<String,Integer,Void> {
@@ -451,6 +513,8 @@ class XMLGetter extends AsyncTask<String,Integer,Void> {
         Log.d("wiki", "onPostExecute: done");
         delegate.processFinish(title, doc);
     }
+
+
 }
 
 
