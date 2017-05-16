@@ -45,11 +45,14 @@ import opennlp.tools.util.Span;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
 import java.io.*;
 import java.net.*;
+import java.util.Queue;
+
 import org.w3c.dom.*;
 import javax.xml.parsers.*;
 
@@ -340,10 +343,13 @@ public class MainActivity extends AppCompatActivity {
             TextView t = (TextView)findViewById(R.id.myTextView);
             t.setText("test done " + spokenText);
 
-            String result = SearchWiki(spokenText);//TODO what i going on with this return?
+
 
             Parse myParse = parseSentence(spokenText, myTokenizer);
             myParse.show();
+            String term = TreeTraverse(myParse);
+            Log.d("term", "onActivityResult: "+term);
+            String result = SearchWiki(term);//TODO what i going on with this return?
 
             //tts.speak(spokenText, TextToSpeech.QUEUE_FLUSH, null);
             ThreadedProcess(spokenText);
@@ -385,10 +391,17 @@ public class MainActivity extends AppCompatActivity {
                 if(output == null)
                 {
                     message = "I can't seem to access my data right now, try checking the network.";
+
                 }
                 else if(output.getElementsByTagName("page").item(0).getAttributes().item(3).getNodeName().equals("missing"))
                 {
                     message = "I can't find anything on "+title;
+                    if(output.getElementsByTagName("p").getLength() > 0)
+                    {
+                        String snip = output.getElementsByTagName("p").item(0).getAttributes().getNamedItem("snippet").getNodeValue();
+                        String strippedText = snip.replaceAll("(?s)<[^>]*>(\\s*<[^>]*>)*", " ");
+                        message = "I'm not sure, but this could be it: "+ strippedText;
+                    }
                 }
                 else
                 {
@@ -469,6 +482,51 @@ public class MainActivity extends AppCompatActivity {
         return _parser.parse(p);
     }
 
+    static String TreeTraverse(Parse p)
+    {
+        Parse np = null;
+
+        Queue q = new LinkedList();
+        q.add(p);
+        System.out.println(p.toString());
+        while(!q.isEmpty())
+        {
+            Parse parse = (Parse)q.remove();
+            for(int i = 0; i < parse.getChildCount(); i++)
+            {
+                Parse child = parse.getChildren()[i];
+                System.out.println(child.toString() + " " + child.getType());
+                if(child.getType().equals("NP") && np == null)
+                {
+                    boolean rootNP = true;
+                    for(int j = 0;j<child.getChildCount();j++)
+                    {
+                        if(child.getChildren()[j].getType().equals("NP"))
+                        {
+                            rootNP = false;
+                        }
+                    }
+                    if(rootNP)
+                    {
+                        np = child;
+                    }
+                }
+                q.add(child);
+            }
+            System.out.println();
+        }
+        if(np == null)
+        {
+            np = p;
+        }
+        //strip determiners
+        if(np != null && np.getChildren()[0].getType().equals("DT"))
+        {
+            np.remove(0);
+        }
+        return np.toString();
+    }
+
 }
 
 class XMLGetter extends AsyncTask<String,Integer,Void> {
@@ -493,7 +551,7 @@ class XMLGetter extends AsyncTask<String,Integer,Void> {
         URL url;
 
         try {
-            url = new URL("https://en.wikipedia.org/w/api.php?action=query&format=xml&prop=extracts%7Ccategories&titles="+urlformat+"&redirects=1&exsentences=1&explaintext=1");
+            url = new URL("https://en.wikipedia.org/w/api.php?action=query&format=xml&prop=extracts%7Ccategories&titles="+urlformat+"&redirects=1&exsentences=1&explaintext=1&list=search&utf8=1&srsearch="+urlformat);
             //HttpURLConnection con=(HttpURLConnection)url.openConnection();
             //InputStream is=con.getInputStream();
             //text = is;
@@ -513,7 +571,6 @@ class XMLGetter extends AsyncTask<String,Integer,Void> {
         Log.d("wiki", "onPostExecute: done");
         delegate.processFinish(title, doc);
     }
-
 
 }
 
