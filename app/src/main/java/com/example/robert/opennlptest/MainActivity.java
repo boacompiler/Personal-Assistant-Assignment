@@ -351,12 +351,20 @@ public class MainActivity extends AppCompatActivity {
 
             Parse myParse = parseSentence(spokenText, myTokenizer);
             myParse.show();
-            String term = TreeTraverse(myParse);
-            Log.d("term", "onActivityResult: "+term);
-            String result = SearchWiki(term);//TODO what i going on with this return?
+            //String term = TreeTraverse(myParse);
+            VoiceQuery vq = new VoiceQuery(myParse);
+            if(!vq.IsError())
+            {
+                Log.d("term", "onActivityResult: "+vq.GenerateTerm());
+                String result = SearchWiki(vq.GenerateTerm());//TODO what is going on with this return?
+            }
+            else
+            {
+                tts.speak("I'm a little confused by that, try phrasing it as a longer question or a more complete sentence", TextToSpeech.QUEUE_FLUSH, null);
+            }
 
-            //tts.speak(spokenText, TextToSpeech.QUEUE_FLUSH, null);
-            ThreadedProcess(spokenText);
+
+            //ThreadedProcess(spokenText);
             //Say("process completed");
         }
         super.onActivityResult(requestCode, resultCode, data);
