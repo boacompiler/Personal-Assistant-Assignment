@@ -95,11 +95,16 @@ public class StringCalc {
                 sumformat += words[i];
             }
             Log.d("calc", "Calc: " + sumformat);
-            BigDecimal result = null;
-            Expression expression = new Expression(sumformat);
-            result = expression.eval();
-            System.out.println(result);
-            return result.toPlainString();
+            try {
+                BigDecimal result = null;
+                Expression expression = new Expression(sumformat);
+                result = expression.eval();
+                System.out.println(result);
+                return result.toPlainString();
+            }catch (Exception e){
+                Log.d("calc", "Calc: ARITHMETIC ERROR");
+                return "";
+            }
         }
         else
         {
