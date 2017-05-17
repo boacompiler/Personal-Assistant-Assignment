@@ -64,12 +64,14 @@ public class MainActivity extends AppCompatActivity {
 
 //     static SentenceDetector mySentenceDetector;
      static Tokenizer myTokenizer;
+    private static Parser _parser = null;
 //     static NameFinderME myNameFinderME;
 //     static POSTagger myPOSTagger;
 
     static{
 //        mySentenceDetector = SetupSentenceDetector();
         myTokenizer = SetupTokenizer();
+        _parser = SetupParser();
 //        myNameFinderME = SetupNameFinder();
 //        myPOSTagger = SetupPOSTagger();
     }
@@ -458,10 +460,12 @@ public class MainActivity extends AppCompatActivity {
         return actualParse;
     }
 
-    private static Parser _parser = null;
-
     private static Parse parse(final Parse p) {
         // lazy initializer
+        return _parser.parse(p);
+    }
+
+    private static Parser SetupParser() {
         if (_parser == null) {
             InputStream modelInP = null;
             try {
@@ -477,11 +481,12 @@ public class MainActivity extends AppCompatActivity {
                 if (modelInP != null) {
                     try {
                         modelInP.close();
-                    } catch (final IOException e) {} // oh well!
+                    } catch (final IOException e) {
+                    } // oh well!
                 }
             }
         }
-        return _parser.parse(p);
+        return _parser;
     }
 
     static String TreeTraverse(Parse p)
