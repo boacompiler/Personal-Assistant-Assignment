@@ -77,6 +77,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     String previousTitle = "";
+    int requestNo = 0;
+    //String previousMessage = "";
 
     private static Context mContext;
     @Override
@@ -368,7 +370,7 @@ public class MainActivity extends AppCompatActivity {
             {
                 if(!previousTitle.equals(""))
                 {
-                    String result = SearchWiki(previousTitle);//TODO what is going on with this return?
+                    String result = SearchWiki(previousTitle, GenerateProp());//TODO what is going on with this return?
                 }
                 else
                 {
@@ -386,7 +388,8 @@ public class MainActivity extends AppCompatActivity {
                 if(!vq.IsError())
                 {
                     Log.d("term", "onActivityResult: "+vq.GenerateTerm());
-                    String result = SearchWiki(vq.GenerateTerm());//TODO what is going on with this return?
+                    requestNo = 0;
+                    String result = SearchWiki(vq.GenerateTerm(), GenerateProp());//TODO what is going on with this return?
                 }
                 else
                 {
@@ -401,6 +404,24 @@ public class MainActivity extends AppCompatActivity {
             //Say("process completed");
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public String GenerateProp()
+    {
+        String prop = "";
+
+        if(requestNo == 0)
+        {
+            prop = "&exsentences=1";
+            requestNo++;
+        }
+        else if(requestNo == 1)
+        {
+            prop = "&exintro=1";
+            requestNo = 0;
+            //previousMessage = "";
+        }
+        return prop;
     }
 
     public void SpeechOnClick(View v)
@@ -424,7 +445,7 @@ public class MainActivity extends AppCompatActivity {
         tts.speak("shut up", TextToSpeech.QUEUE_FLUSH, null);
     }
 
-    public String SearchWiki(String title)
+    public String SearchWiki(String title, String prop)
     {
         //String url = "https://en.wikipedia.org/w/api.php?action=query&format=xml&prop=extracts%7Ccategories&titles=LEGO&redirects=1&exsentences=1&explaintext=1";
         String result = "No Result";
@@ -451,6 +472,9 @@ public class MainActivity extends AppCompatActivity {
                         String snip = output.getElementsByTagName("p").item(0).getAttributes().getNamedItem("snippet").getNodeValue();
                         String strippedText = snip.replaceAll("(?s)<[^>]*>(\\s*<[^>]*>)*", " ");
                         message = "I'm not sure, but this could be it: "+ strippedText;
+                        previousTitle = output.getElementsByTagName("p").item(0).getAttributes().getNamedItem("title").getNodeValue();
+                        //previousMessage = "";
+                        Log.d("wiki", "processFinish: adds search title to previous");
                     }
                 }
                 else
@@ -460,6 +484,13 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("wiki message", "processFinish:  ambiguous: " + output.getElementsByTagName("cl").item(0).getAttributes().getLength());
                     Log.d("wiki message", "processFinish:  ambiguous: " + output.getElementsByTagName("cl").item(0).getAttributes().item(0).getNodeValue());
                     message = output.getElementsByTagName("extract").item(0).getTextContent();
+                    previousTitle = output.getElementsByTagName("page").item(0).getAttributes().getNamedItem("title").getNodeValue();
+//                    String fullmessage = message;
+//                    if(requestNo > 0)
+//                    {
+//                        message = message.replace(previousMessage,"");
+//                    }
+//                    previousMessage = fullmessage;
                     for(int i=0;i < output.getElementsByTagName("cl").getLength();i++)
                     {
                         if(output.getElementsByTagName("cl").item(i).getAttributes().item(1).getTextContent().equals("Category:All article disambiguation pages"))
@@ -473,7 +504,7 @@ public class MainActivity extends AppCompatActivity {
 
                 tts.speak(message, TextToSpeech.QUEUE_FLUSH, null);
             }
-        }).execute(title);
+        }).execute(title, prop);
 
         return result;
     }
@@ -671,9 +702,10 @@ class XMLGetter extends AsyncTask<String,Integer,Void> {
         title = params[0];
         String urlformat = title.replace(" ","+");
         URL url;
+        String prop = params[1];
 
         try {
-            url = new URL("https://en.wikipedia.org/w/api.php?action=query&format=xml&prop=extracts%7Ccategories&titles="+urlformat+"&redirects=1&exsentences=1&explaintext=1&list=search&utf8=1&srsearch="+urlformat);
+            url = new URL("https://en.wikipedia.org/w/api.php?action=query&format=xml&prop=extracts%7Ccategories&titles="+urlformat+"&redirects=1"+prop+"&explaintext=1&list=search&utf8=1&srsearch="+urlformat);
             //HttpURLConnection con=(HttpURLConnection)url.openConnection();
             //InputStream is=con.getInputStream();
             //text = is;
