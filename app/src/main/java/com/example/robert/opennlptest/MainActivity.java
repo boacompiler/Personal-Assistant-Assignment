@@ -76,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
 //        myPOSTagger = SetupPOSTagger();
     }
 
+    String previousTitle = "";
+
     private static Context mContext;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -362,6 +364,18 @@ public class MainActivity extends AppCompatActivity {
                     tts.speak("Sorry, I couldn't work this out", TextToSpeech.QUEUE_FLUSH, null);
                 }
             }
+            else if(spokenText.equals("tell me more"))
+            {
+                if(!previousTitle.equals(""))
+                {
+                    String result = SearchWiki(previousTitle);//TODO what is going on with this return?
+                }
+                else
+                {
+                    tts.speak("I haven't told you anything yet!", TextToSpeech.QUEUE_FLUSH, null);
+                }
+
+            }
             else
             {
                 spokenText = spokenText  + ".";
@@ -403,6 +417,11 @@ public class MainActivity extends AppCompatActivity {
         //String result = SearchWiki("Donald+Trump");
         Log.d("wiki", "SpeechOnClick: ");
         //tts.speak(result, TextToSpeech.QUEUE_FLUSH, null);
+    }
+
+    public void ShutUpOnClick(View v)
+    {
+        tts.speak("shut up", TextToSpeech.QUEUE_FLUSH, null);
     }
 
     public String SearchWiki(String title)

@@ -82,5 +82,15 @@
             android:onClick="SpeechOnClick"
             android:text="Speak" />
 
+        <Button
+            android:id="@+id/button2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/button"
+            android:layout_alignStart="@+id/button"
+            android:layout_alignTop="@+id/myTextView"
+            android:onClick="ShutUpOnClick"
+            android:text="Shut Up" />
+
     </RelativeLayout>
 </android.support.constraint.ConstraintLayout>
