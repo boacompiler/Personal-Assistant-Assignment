@@ -342,26 +342,45 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == SPEECH_REQUEST_CODE && resultCode == RESULT_OK) {
             List<String> results = data.getStringArrayListExtra(
                     RecognizerIntent.EXTRA_RESULTS);
-            String spokenText = results.get(0) + ".";
+            String spokenText = results.get(0);
             // Do something with spokenText
             TextView t = (TextView)findViewById(R.id.myTextView);
             t.setText("test done " + spokenText);
 
+            String[] spokenwords = spokenText.split(" ", 2);
 
-
-            Parse myParse = parseSentence(spokenText, myTokenizer);
-            myParse.show();
-            //String term = TreeTraverse(myParse);
-            VoiceQuery vq = new VoiceQuery(myParse);
-            if(!vq.IsError())
+            if(spokenwords.length >= 2 && spokenwords[0].equals("calculate"))
             {
-                Log.d("term", "onActivityResult: "+vq.GenerateTerm());
-                String result = SearchWiki(vq.GenerateTerm());//TODO what is going on with this return?
+                StringCalc sc = new StringCalc();
+                String ans = sc.Calc(spokenwords[1]);
+                if(!ans.equals(""))
+                {
+                    tts.speak("The answer to "+spokenwords[1]+" is: " + ans, TextToSpeech.QUEUE_FLUSH, null);
+                }
+                else
+                {
+                    tts.speak("Sorry, I couldn't work this out", TextToSpeech.QUEUE_FLUSH, null);
+                }
             }
             else
             {
-                tts.speak("I'm a little confused by that, try phrasing it as a longer question or a more complete sentence", TextToSpeech.QUEUE_FLUSH, null);
+                spokenText = spokenText  + ".";
+                Parse myParse = parseSentence(spokenText, myTokenizer);
+                myParse.show();
+                //String term = TreeTraverse(myParse);
+                VoiceQuery vq = new VoiceQuery(myParse);
+                if(!vq.IsError())
+                {
+                    Log.d("term", "onActivityResult: "+vq.GenerateTerm());
+                    String result = SearchWiki(vq.GenerateTerm());//TODO what is going on with this return?
+                }
+                else
+                {
+                    tts.speak("I'm a little confused by that, try phrasing it as a longer question or a more complete sentence", TextToSpeech.QUEUE_FLUSH, null);
+                }
             }
+
+
 
 
             //ThreadedProcess(spokenText);
