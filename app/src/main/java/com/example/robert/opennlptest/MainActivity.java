@@ -593,8 +593,8 @@ public class MainActivity extends AppCompatActivity {
         }
         catch (Exception e)
         {
-            Log.d("parseing", "TreeTraverse: " + e.getMessage());
-            return "ERROR";
+            Log.d("parsing", "TreeTraverse: " + e.getMessage());
+            return "error";
         }
     }
 
