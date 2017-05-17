@@ -45,6 +45,8 @@ import opennlp.tools.util.Span;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -338,7 +340,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == SPEECH_REQUEST_CODE && resultCode == RESULT_OK) {
             List<String> results = data.getStringArrayListExtra(
                     RecognizerIntent.EXTRA_RESULTS);
-            String spokenText = results.get(0);
+            String spokenText = results.get(0) + ".";
             // Do something with spokenText
             TextView t = (TextView)findViewById(R.id.myTextView);
             t.setText("test done " + spokenText);
@@ -484,47 +486,116 @@ public class MainActivity extends AppCompatActivity {
 
     static String TreeTraverse(Parse p)
     {
-        Parse np = null;
+        try {
 
-        Queue q = new LinkedList();
-        q.add(p);
-        System.out.println(p.toString());
-        while(!q.isEmpty())
-        {
-            Parse parse = (Parse)q.remove();
-            for(int i = 0; i < parse.getChildCount(); i++)
-            {
-                Parse child = parse.getChildren()[i];
-                System.out.println(child.toString() + " " + child.getType());
-                if(child.getType().equals("NP") && np == null)
-                {
-                    boolean rootNP = true;
-                    for(int j = 0;j<child.getChildCount();j++)
-                    {
-                        if(child.getChildren()[j].getType().equals("NP"))
-                        {
-                            rootNP = false;
+
+            List<Parse> questions = new ArrayList<Parse>();
+            List<Parse> wh = new ArrayList<Parse>();
+            List<Parse> verbphrases = new ArrayList<Parse>();
+            List<Parse> nounphrases = new ArrayList<Parse>();
+            Parse primaryNP = null;
+
+            Queue q = new LinkedList();
+            q.add(p);
+            //Traverse looking for basic chunks
+            while (!q.isEmpty()) {
+                Parse parse = (Parse) q.remove();
+                for (int i = 0; i < parse.getChildCount(); i++) {
+                    Parse child = parse.getChildren()[i];
+                    System.out.println(child.toString() + " " + child.getType());
+                    if (child.getType().equals("SQ") || child.getType().equals("SBARQ") || child.getType().equals("SBAR")) {
+                        questions.add(child);
+                    }
+                    if (child.getType().equals("WRB") || child.getType().equals("WP")) {
+                        wh.add(child);
+                    }
+                    if (child.getParent().getType().equals("VP") && (child.getType().equals("VB") || child.getType().equals("VBD") || child.getType().equals("VBN"))) {
+                        verbphrases.add(child);
+                    }
+                    if (child.getType().equals("NP")) {
+                        boolean rootNP = true;
+                        for (int j = 0; j < child.getChildCount(); j++) {
+                            if (child.getChildren()[j].getType().equals("NP")) {
+                                rootNP = false;
+                            }
                         }
+                        if (rootNP) {
+                            System.out.println("Adding np: " + child.toString());
+                            nounphrases.add(child);
+                        }
+
                     }
-                    if(rootNP)
-                    {
-                        np = child;
-                    }
+                    q.add(child);
                 }
-                q.add(child);
+                System.out.println();
             }
-            System.out.println();
+            //Traverse final question chunk looking for most significant noun phrase
+            Queue questionq = new LinkedList();
+            if (questions.size() > 0) {
+                questionq.add(questions.get(0));
+            } else {
+                questionq.add(p);
+            }
+
+            List<Parse> np = new ArrayList<Parse>();
+
+            while (!questionq.isEmpty()) {
+                Parse parse = (Parse) questionq.remove();
+                for (int i = 0; i < parse.getChildCount(); i++) {
+                    Parse child = parse.getChildren()[i];
+                    System.out.println("questions: " + child.toString() + " " + child.getType());
+                    if (child.getType().equals("NP")) {
+                        boolean rootNP = true;
+                        for (int j = 0; j < child.getChildCount(); j++) {
+                            if (child.getChildren()[j].getType().equals("NP")) {
+                                rootNP = false;
+                            }
+                        }
+                        if (rootNP) {
+                            System.out.println("Adding np: " + child.toString());
+                            np.add(child);
+                        }
+
+                    }
+                    questionq.add(child);
+                }
+            }
+            if (!np.isEmpty()) {
+                if (np.get(0).getChildren()[0].getType().equals("PRP") || np.get(0).getChildren()[0].getType().equals("PRP$")) {
+                    primaryNP = nounphrases.get(0);
+                } else {
+                    primaryNP = np.get(0);
+                    nounphrases.removeAll(Collections.singleton(primaryNP));
+                }
+            }
+
+
+            for (int i = 0; i < questions.size(); i++) {
+                System.out.println(questions.get(i));
+            }
+            for (int i = 0; i < wh.size(); i++) {
+                System.out.println(wh.get(i));
+            }
+            for (int i = 0; i < verbphrases.size(); i++) {
+                System.out.println(verbphrases.get(i));
+            }
+            for (int i = 0; i < nounphrases.size(); i++) {
+                if (nounphrases.get(i).getChildren()[0].getType().equals("DT")) {
+                    nounphrases.get(i).remove(0);
+                }
+                System.out.println(nounphrases.get(i));
+            }
+            if (primaryNP != null && primaryNP.getChildren()[0].getType().equals("DT")) {
+                primaryNP.remove(0);
+            }
+            //System.out.println("primary term: "+.toString());
+            return primaryNP.toString();//TODO return a class of stuff
         }
-        if(np == null)
+        catch (Exception e)
         {
-            np = p;
+            Log.d("parseing", "TreeTraverse: " + e.getMessage());
+            return "ERROR";
         }
-        //strip determiners
-        if(np != null && np.getChildren()[0].getType().equals("DT"))
-        {
-            np.remove(0);
-        }
-        return np.toString();
     }
 
 }
