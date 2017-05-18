@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
     String previousTitle = "";
     int requestNo = 0;
     //String previousMessage = "";
+    RandomMessage rm = new RandomMessage();
 
     private static Context mContext;
     @Override
@@ -378,6 +379,10 @@ public class MainActivity extends AppCompatActivity {
                 }
 
             }
+            else if(spokenText.equals("tell me a joke"))
+            {
+                tts.speak(rm.GetJoke(), TextToSpeech.QUEUE_FLUSH, null);
+            }
             else
             {
                 spokenText = spokenText  + ".";
@@ -471,7 +476,7 @@ public class MainActivity extends AppCompatActivity {
                     {
                         String snip = output.getElementsByTagName("p").item(0).getAttributes().getNamedItem("snippet").getNodeValue();
                         String strippedText = snip.replaceAll("(?s)<[^>]*>(\\s*<[^>]*>)*", " ");
-                        message = "I'm not sure, but this could be it: "+ strippedText;
+                        message = rm.GetNotSure() + strippedText;
                         previousTitle = output.getElementsByTagName("p").item(0).getAttributes().getNamedItem("title").getNodeValue();
                         //previousMessage = "";
                         Log.d("wiki", "processFinish: adds search title to previous");
