@@ -130,12 +130,37 @@ public class VoiceQuery {
 			}
 			if (!np.isEmpty()) {
 				if (np.get(0).getChildren()[0].getType().equals("PRP") || np.get(0).getChildren()[0].getType().equals("PRP$")) {
-					primaryNP = nounphrases.get(0);
+					//primaryNP = nounphrases.get(0);
+					for(int i=0;i<nounphrases.size();i++)
+					{
+						if(!nounphrases.get(i).getChildren()[0].getType().equals("EX") && nounphrases.get(i).getChildCount() <= 1)
+					    {
+							primaryNP = nounphrases.get(i);
+                            nounphrases.removeAll(Collections.singleton(primaryNP));
+							break;
+						}
+					}
+
 				} else {
 					primaryNP = np.get(0);
 					nounphrases.removeAll(Collections.singleton(primaryNP));
 				}
 			}
+
+            for(int i = 0; i<nounphrases.size();i++)
+            {
+                if((nounphrases.get(i).getChildren()[0].getType().equals("DT") || nounphrases.get(i).getChildren()[0].getType().equals("EX") || nounphrases.get(i).getChildren()[0].getType().equals("PRP") || nounphrases.get(i).getChildren()[0].getType().equals("PRP$")) && nounphrases.get(i).getChildCount() <= 1)
+                {
+                    //nounphrases.get(i).remove(0);
+                    nounphrases.remove(i);
+                    i--;
+                }
+                else if (nounphrases.get(i).getChildren()[0].getType().equals("DT") || nounphrases.get(i).getChildren()[0].getType().equals("PRP$"))
+                {
+                    nounphrases.get(i).remove(0);
+                }
+
+            }
 
 
 			for (int i = 0; i < questions.size(); i++) {
@@ -148,9 +173,6 @@ public class VoiceQuery {
 				System.out.println(verbphrases.get(i));
 			}
 			for (int i = 0; i < nounphrases.size(); i++) {
-				if (nounphrases.get(i).getChildren()[0].getType().equals("DT")) {
-					nounphrases.get(i).remove(0);
-				}
 				System.out.println(nounphrases.get(i));
 			}
 			if (primaryNP != null && primaryNP.getChildren()[0].getType().equals("DT")) {
@@ -180,6 +202,7 @@ public class VoiceQuery {
         {
             term = "error"; //This should never really be relied upon, errors should be handled at search time
         }
+        Log.d("term", "GenerateTerm: " + term);
         return term;
     }
 
