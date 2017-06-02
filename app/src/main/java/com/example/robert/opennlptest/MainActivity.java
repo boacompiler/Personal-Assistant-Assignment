@@ -484,26 +484,31 @@ public class MainActivity extends AppCompatActivity {
                 }
                 else
                 {
-                    Log.d("wiki message", "processFinish:  message: "+output.getElementsByTagName("extract").item(0).getTextContent());
-                    Log.d("wiki message", "processFinish:  ambiguous: " + output.getElementsByTagName("cl").getLength());
-                    Log.d("wiki message", "processFinish:  ambiguous: " + output.getElementsByTagName("cl").item(0).getAttributes().getLength());
-                    Log.d("wiki message", "processFinish:  ambiguous: " + output.getElementsByTagName("cl").item(0).getAttributes().item(0).getNodeValue());
-                    message = output.getElementsByTagName("extract").item(0).getTextContent();
-                    previousTitle = output.getElementsByTagName("page").item(0).getAttributes().getNamedItem("title").getNodeValue();
+//                    Log.d("wiki message", "processFinish:  message: "+output.getElementsByTagName("extract").item(0).getTextContent());
+//                    Log.d("wiki message", "processFinish:  ambiguous: " + output.getElementsByTagName("cl").getLength());
+//                    Log.d("wiki message", "processFinish:  ambiguous: " + output.getElementsByTagName("cl").item(0).getAttributes().getLength());
+//                    Log.d("wiki message", "processFinish:  ambiguous: " + output.getElementsByTagName("cl").item(0).getAttributes().item(0).getNodeValue());
+                    try {
+                        message = output.getElementsByTagName("extract").item(0).getTextContent();
+                        previousTitle = output.getElementsByTagName("page").item(0).getAttributes().getNamedItem("title").getNodeValue();
 //                    String fullmessage = message;
 //                    if(requestNo > 0)
 //                    {
 //                        message = message.replace(previousMessage,"");
 //                    }
 //                    previousMessage = fullmessage;
-                    for(int i=0;i < output.getElementsByTagName("cl").getLength();i++)
-                    {
-                        if(output.getElementsByTagName("cl").item(i).getAttributes().item(1).getTextContent().equals("Category:All article disambiguation pages"))
-                        {
-                            message = "please be more specific, "+title+" is ambiguous." ;
-                            break;
+                        for (int i = 0; i < output.getElementsByTagName("cl").getLength(); i++) {
+                            if (output.getElementsByTagName("cl").item(i).getAttributes().item(1).getTextContent().equals("Category:All article disambiguation pages")) {
+                                message = "please be more specific, " + title + " is ambiguous.";
+                                break;
+                            }
                         }
                     }
+                    catch(Exception e)
+                    {
+                        message = "I'm sorry, I don't recognise that!";
+                    }
+
                     //Log.d("message ambiguous", "processFinish: "+output.getElementsByTagName("cl").item(0).getAttributes().item(1).getTextContent());
                 }
 
