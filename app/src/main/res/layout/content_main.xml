@@ -8,89 +8,29 @@
     tools:context="com.example.robert.opennlptest.MainActivity"
     tools:showIn="@layout/activity_main">
 
-    <RelativeLayout
-        android:layout_width="352dp"
-        android:layout_height="535dp"
-        android:visibility="visible"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="16dp">
+    z
+
+    <LinearLayout
+        android:layout_width="368dp"
+        android:layout_height="551dp"
+        android:orientation="vertical"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="8dp">
 
         <Button
-            android:id="@+id/button4"
-            android:layout_width="wrap_content"
+            android:id="@+id/button6"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
-            android:layout_marginEnd="13dp"
-            android:layout_marginRight="13dp"
-            android:layout_marginTop="47dp"
-            android:onClick="buttonOnClick"
-            android:text="Process" />
-
-        <EditText
-            android:id="@+id/editText3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/button4"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_marginLeft="14dp"
-            android:layout_marginStart="14dp"
-            android:ems="10"
-            android:inputType="textPersonName"
-            android:text="Name" />
-
-        <EditText
-            android:id="@+id/editText4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/editText3"
-            android:layout_alignStart="@+id/editText3"
-            android:layout_below="@+id/editText3"
-            android:layout_marginTop="13dp"
-            android:ems="10"
-            android:inputType="textMultiLine" />
-
-        <TextView
-            android:id="@+id/myTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/editText4"
-            android:layout_alignStart="@+id/editText4"
-            android:layout_below="@+id/editText4"
-            android:layout_marginTop="19dp"
-            android:text="TextView is ready" />
-
-        <ProgressBar
-            android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/myTextView"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="105dp"
-            android:visibility="invisible" />
-
-        <Button
-            android:id="@+id/button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignEnd="@+id/button4"
-            android:layout_alignRight="@+id/button4"
-            android:layout_alignTop="@+id/editText4"
+            android:layout_weight="1"
             android:onClick="SpeechOnClick"
-            android:text="Speak" />
+            android:text="Ask A Question" />
 
         <Button
-            android:id="@+id/button2"
-            android:layout_width="wrap_content"
+            android:id="@+id/button5"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/button"
-            android:layout_alignStart="@+id/button"
-            android:layout_alignTop="@+id/myTextView"
+            android:layout_weight="0.21"
             android:onClick="ShutUpOnClick"
             android:text="Shut Up" />
-
-    </RelativeLayout>
+    </LinearLayout>
 </android.support.constraint.ConstraintLayout>

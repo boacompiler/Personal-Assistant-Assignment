@@ -88,17 +88,17 @@ public class MainActivity extends AppCompatActivity {
         mContext = this;
 
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        //setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        //FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+//        fab.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+//            }
+//        });
 //        mySentenceDetector = SetupSentenceDetector();
 //        myTokenizer = SetupTokenizer();
 //        myNameFinderME = SetupNameFinder();
@@ -140,9 +140,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void buttonOnClick(View v)
     {
-        EditText e = (EditText)findViewById(R.id.editText3);
-        String query = e.getText().toString();
-        ThreadedProcess(query);
+        //EditText e = (EditText)findViewById(R.id.editText3);
+       // String query = e.getText().toString();
+        //ThreadedProcess(query);
 
     }
 
@@ -301,31 +301,31 @@ public class MainActivity extends AppCompatActivity {
 
     public void ThreadedProcess(String q)
     {
-        final String query = q;
-        //final SentenceDetector sd = mySentenceDetector;
-        TextView t = (TextView)findViewById(R.id.myTextView);
-
-        final Handler handler = new Handler();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final String result = "lel";//process(query, mySentenceDetector, myTokenizer, myNameFinderME, myPOSTagger);
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        ProgressBar p = (ProgressBar)findViewById(R.id.progressBar);
-                        p.setVisibility(View.INVISIBLE);
-                        TextView t = (TextView)findViewById(R.id.myTextView);
-                        t.setText("test done" + result);
-                    }
-                });
-            }
-        };
-
-        t.append("\nTEST");
-        ProgressBar p = (ProgressBar)findViewById(R.id.progressBar);
-        p.setVisibility(View.VISIBLE);
-        new Thread(runnable).start();
+//        final String query = q;
+//        //final SentenceDetector sd = mySentenceDetector;
+//        TextView t = (TextView)findViewById(R.id.myTextView);
+//
+//        final Handler handler = new Handler();
+//        Runnable runnable = new Runnable() {
+//            @Override
+//            public void run() {
+//                final String result = "lel";//process(query, mySentenceDetector, myTokenizer, myNameFinderME, myPOSTagger);
+//                handler.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        ProgressBar p = (ProgressBar)findViewById(R.id.progressBar);
+//                        p.setVisibility(View.INVISIBLE);
+//                        TextView t = (TextView)findViewById(R.id.myTextView);
+//                        t.setText("test done" + result);
+//                    }
+//                });
+//            }
+//        };
+//
+//        t.append("\nTEST");
+//        ProgressBar p = (ProgressBar)findViewById(R.id.progressBar);
+//        p.setVisibility(View.VISIBLE);
+//        new Thread(runnable).start();
     }
 
     private static final int SPEECH_REQUEST_CODE = 0;
@@ -349,8 +349,8 @@ public class MainActivity extends AppCompatActivity {
                     RecognizerIntent.EXTRA_RESULTS);
             String spokenText = results.get(0);
             // Do something with spokenText
-            TextView t = (TextView)findViewById(R.id.myTextView);
-            t.setText("test done " + spokenText);
+            //TextView t = (TextView)findViewById(R.id.myTextView);
+            //t.setText("test done " + spokenText);
 
             String[] spokenwords = spokenText.split(" ", 2);
 
@@ -437,8 +437,8 @@ public class MainActivity extends AppCompatActivity {
 
         //tts.speak("Why is this not working", TextToSpeech.QUEUE_FLUSH, null);
 
-        TextView t = (TextView)findViewById(R.id.myTextView);
-        t.setText("start speaking");
+//        TextView t = (TextView)findViewById(R.id.myTextView);
+//        t.setText("start speaking");
         displaySpeechRecognizer();
         //String result = SearchWiki("Donald+Trump");
         Log.d("wiki", "SpeechOnClick: ");
