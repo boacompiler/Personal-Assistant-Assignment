@@ -1,6 +1,5 @@
 package com.example.robert.opennlptest;
 
-import android.speech.tts.Voice;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -130,7 +129,6 @@ public class VoiceQuery {
 			}
 			if (!np.isEmpty()) {
 				if (np.get(0).getChildren()[0].getType().equals("PRP") || np.get(0).getChildren()[0].getType().equals("PRP$")) {
-					//primaryNP = nounphrases.get(0);
 					for(int i=0;i<nounphrases.size();i++)
 					{
 						if(!nounphrases.get(i).getChildren()[0].getType().equals("EX") && nounphrases.get(i).getChildCount() <= 1)
@@ -151,7 +149,6 @@ public class VoiceQuery {
             {
                 if((nounphrases.get(i).getChildren()[0].getType().equals("DT") || nounphrases.get(i).getChildren()[0].getType().equals("EX") || nounphrases.get(i).getChildren()[0].getType().equals("PRP") || nounphrases.get(i).getChildren()[0].getType().equals("PRP$")) && nounphrases.get(i).getChildCount() <= 1)
                 {
-                    //nounphrases.get(i).remove(0);
                     nounphrases.remove(i);
                     i--;
                 }
