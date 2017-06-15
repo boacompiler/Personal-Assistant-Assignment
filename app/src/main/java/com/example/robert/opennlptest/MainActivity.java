@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
     static Tokenizer questionTokenizer;
     private static Parser questionParser = null;
 
+    //initialises as static at startup to comply with garbage collection guidelines
     static{
         questionTokenizer = SetupTokenizer();
         questionParser = SetupParser();
@@ -72,6 +73,10 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * initialises a tokenizer with model
+     * @return initialised tokenizer
+     */
     public static Tokenizer SetupTokenizer()
     {
         Tokenizer newTokenizer = null;
@@ -87,7 +92,10 @@ public class MainActivity extends AppCompatActivity {
         }
         return newTokenizer;
     }
-
+    /**
+     * initialises a postagger with model
+     * @return initialised postagger
+     */
     public static POSTagger SetupPOSTagger()
     {
         POSTagger newPosTagger = null;
@@ -106,6 +114,9 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int SPEECH_REQUEST_CODE = 0;
 
+    /**
+     * displays the google speech recognizer dialog
+     */
     private void displaySpeechRecognizer() {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
@@ -116,13 +127,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode,
                                     Intent data) {
+        //runs after speech recognition
         if (requestCode == SPEECH_REQUEST_CODE && resultCode == RESULT_OK) {
             List<String> results = data.getStringArrayListExtra(
                     RecognizerIntent.EXTRA_RESULTS);
             String spokenText = results.get(0);
 
             String[] spokenwords = spokenText.split(" ", 2);
-
+            //checks for keywords, else runs natural language parse
             if(spokenwords.length >= 2 && spokenwords[0].equals("calculate"))
             {
                 StringCalc sc = new StringCalc();
@@ -154,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
             }
             else
             {
-                spokenText = spokenText  + ".";
+                spokenText = spokenText  + ".";//adds missing punctuation
                 Parse myParse = parseSentence(spokenText, questionTokenizer);
                 myParse.show();
                 VoiceQuery vq = new VoiceQuery(myParse);
@@ -173,6 +185,10 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    /**
+     * generates properties for the wikimedia api query based on request number
+     * @return properties string
+     */
     public String GenerateProp()
     {
         String prop = "";
@@ -191,8 +207,12 @@ public class MainActivity extends AppCompatActivity {
         return prop;
     }
 
+    /**
+     * method for question button
+     */
     public void SpeechOnClick(View v)
     {
+        //plays notification and displays speech recognition dialog
         Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
         r.play();
@@ -200,16 +220,24 @@ public class MainActivity extends AppCompatActivity {
         Log.d("wiki", "SpeechOnClick: ");
     }
 
+    /**
+     * method for shut up button
+     */
     public void ShutUpOnClick(View v)
     {
         //this flushes the current speech queue, halting current speech
         tts.speak("shut up", TextToSpeech.QUEUE_FLUSH, null);
     }
 
+    /**
+     * searches the wikimedia api
+     * @param title article title or search term
+     * @param prop additional properties
+     */
     public String SearchWiki(String title, String prop)
     {
         String result = "No Result";
-
+        //uses xmlgetter to retrieve xml from wikimedia
         XMLGetter xg =(XMLGetter) new XMLGetter(new XMLGetter.AsyncResponse() {
             @Override
             public void processFinish(String title, Document output) {
@@ -219,14 +247,17 @@ public class MainActivity extends AppCompatActivity {
                 String message = "Sorry, somethings gone wrong";
                 if(output == null)
                 {
+                    //if no access to wikimedia
                     message = "I can't seem to access my data right now, try checking the network.";
 
                 }
                 else if(output.getElementsByTagName("page").item(0).getAttributes().item(3).getNodeName().equals("missing"))
                 {
+                    //if no information on subject
                     message = "I can't find anything on "+title;
                     if(output.getElementsByTagName("p").getLength() > 0)
                     {
+                        //if uncertain information on subject
                         String snip = output.getElementsByTagName("p").item(0).getAttributes().getNamedItem("snippet").getNodeValue();
                         String strippedText = snip.replaceAll("(?s)<[^>]*>(\\s*<[^>]*>)*", " ");
                         message = randomMessage.GetNotSure() + strippedText;
@@ -242,6 +273,7 @@ public class MainActivity extends AppCompatActivity {
                         previousTitle = output.getElementsByTagName("page").item(0).getAttributes().getNamedItem("title").getNodeValue();
                         for (int i = 0; i < output.getElementsByTagName("cl").getLength(); i++) {
                             if (output.getElementsByTagName("cl").item(i).getAttributes().item(1).getTextContent().equals("Category:All article disambiguation pages")) {
+                                //if subject name is disambiguation page, there are multiple possible subjects
                                 message = "please be more specific, " + title + " is ambiguous.";
                                 break;
                             }
@@ -260,6 +292,12 @@ public class MainActivity extends AppCompatActivity {
         return result;
     }
 
+    /**
+     * parses a sentence
+     * @param text sentence
+     * @param tokenizer initialised tokenizer
+     * @return parse tree of sentence
+     */
     private static Parse parseSentence(final String text, Tokenizer tokenizer) {
         final Parse myParse = new Parse(text, new Span(0, text.length()), AbstractBottomUpParser.INC_NODE,1, 0);
 
@@ -278,6 +316,10 @@ public class MainActivity extends AppCompatActivity {
         return questionParser.parse(p);
     }
 
+    /**
+     * sets up parser with model
+     * @return initialised parser
+     */
     private static Parser SetupParser() {
         if (questionParser == null) {
             InputStream inputStream = null;
@@ -295,6 +337,10 @@ public class MainActivity extends AppCompatActivity {
     }
 }
 
+/**
+ * class to get xml from wikimedia api
+ * asynchronous to allow internet stream retrieval
+ */
 class XMLGetter extends AsyncTask<String,Integer,Void> {
 
     Document doc;
@@ -311,6 +357,11 @@ class XMLGetter extends AsyncTask<String,Integer,Void> {
         this.delegate = delegate;
     }
 
+    /**
+     * async task retrieves data from wikimedia api
+     * @param params list of parameters for async task
+     * @return null
+     */
     protected Void doInBackground(String...params){
         title = params[0];
         String urlformat = title.replace(" ","+");
