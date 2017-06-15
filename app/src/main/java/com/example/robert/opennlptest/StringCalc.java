@@ -8,10 +8,15 @@ import java.util.Arrays;
 
 /**
  * Created by robert on 17/05/17.
+ * class that prepares a string for Expression.java, runs it, and returns the result.
  */
 
 public class StringCalc {
-
+    /**
+     * method that calculates a plain text expression
+     * @param sum the expression to calculate
+     * @return the solution to the expression as a string
+     */
     public String Calc(String sum)
     {
         Log.d("calc", "Calc: " + sum);
@@ -19,11 +24,14 @@ public class StringCalc {
         Log.d("calc", "Calc: " + Arrays.toString(words));
         boolean error = false;
 
+        //checks for common words and replaces with correct symbols
         for(int i = 0; i<words.length;i++)
         {
 
             if(TextUtils.isDigitsOnly(words[i].replace(".","")))
             {
+                //if the word is a number, do nothing
+                //we replace the '.' first to allow decimal numbers to be checked
                 Log.d("calc", "Calc: digits: "+ words[i]);
             }
             else if(words[i].equals("times")||words[i].equals("X")||words[i].equals("x")||words[i].equals("*"))
@@ -64,11 +72,13 @@ public class StringCalc {
             }
             else if(words[i].equals("away")||words[i].equals("by")||words[i].equals(" "))
             {
+                //'divided by' and 'take away' are 2 words, we handle the first and throw away the second
                 Log.d("calc", "Calc: waste: "+ words[i]);
                 words[i] = "";
             }
             else
             {
+                //if the word isn't recognised, the expression isn't solvable
                 Log.d("calc", "Calc: error: "+ words[i]);
                 error = true;
                 break;
