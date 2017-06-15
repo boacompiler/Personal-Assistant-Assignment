@@ -10,13 +10,18 @@ import java.util.Queue;
 
 import opennlp.tools.parser.Parse;
 
+/**
+ * Created by robert on 18/05/17.
+ * processes voice queries
+ */
+
 public class VoiceQuery {
 	
-	private List<Parse> questions = new ArrayList<Parse>();
-	private List<Parse> wh = new ArrayList<Parse>();
-	private List<Parse> verbphrases = new ArrayList<Parse>();
-	private List<Parse> nounphrases = new ArrayList<Parse>();
-	private Parse primaryNP = null;
+	private List<Parse> questions = new ArrayList<Parse>();//a list of identified question clauses
+	private List<Parse> wh = new ArrayList<Parse>();//list of whadverbs
+	private List<Parse> verbphrases = new ArrayList<Parse>();//list of verb phrases
+	private List<Parse> nounphrases = new ArrayList<Parse>();//list of noun phrases
+	private Parse primaryNP = null;//the primary noun phrase
 	private boolean error = false;
 
 	public VoiceQuery(Parse p)
@@ -32,7 +37,7 @@ public class VoiceQuery {
 		this.nounphrases = nounphrases;
 		this.primaryNP = primaryNP;
 	}
-	
+	//Getters
 	public List<Parse> GetQuestions()
 	{
 		return this.questions;
@@ -52,6 +57,10 @@ public class VoiceQuery {
 	public Parse GetPrimaryNP() {return this.primaryNP; }
 	public boolean IsError() { return this.error; }
 
+	/**
+	 * traverses a question parse tree and extracts information
+	 * @param p the parse tree of a question
+	 */
 	public void TreeTraverse(Parse p)
 	{
 		try {
@@ -64,7 +73,7 @@ public class VoiceQuery {
 
 			Queue q = new LinkedList();
 			q.add(p);
-			//Traverse looking for basic chunks
+			//Breadth first traverse looking for basic chunks
 			while (!q.isEmpty()) {
 				Parse parse = (Parse) q.remove();
 				for (int i = 0; i < parse.getChildCount(); i++) {
@@ -127,10 +136,12 @@ public class VoiceQuery {
 					questionq.add(child);
 				}
 			}
+			//resolves pronouns
 			if (!np.isEmpty()) {
 				if (np.get(0).getChildren()[0].getType().equals("PRP") || np.get(0).getChildren()[0].getType().equals("PRP$")) {
 					for(int i=0;i<nounphrases.size();i++)
 					{
+						//ignores existential
 						if(!nounphrases.get(i).getChildren()[0].getType().equals("EX") && nounphrases.get(i).getChildCount() <= 1)
 					    {
 							primaryNP = nounphrases.get(i);
@@ -144,7 +155,7 @@ public class VoiceQuery {
 					nounphrases.removeAll(Collections.singleton(primaryNP));
 				}
 			}
-
+			//removes less useful noun phrases
             for(int i = 0; i<nounphrases.size();i++)
             {
                 if((nounphrases.get(i).getChildren()[0].getType().equals("DT") || nounphrases.get(i).getChildren()[0].getType().equals("EX") || nounphrases.get(i).getChildren()[0].getType().equals("PRP") || nounphrases.get(i).getChildren()[0].getType().equals("PRP$")) && nounphrases.get(i).getChildCount() <= 1)
@@ -172,6 +183,7 @@ public class VoiceQuery {
 			for (int i = 0; i < nounphrases.size(); i++) {
 				System.out.println(nounphrases.get(i));
 			}
+			//strips primary noun phrases leading determiners
 			if (primaryNP != null && primaryNP.getChildren()[0].getType().equals("DT")) {
 				primaryNP.remove(0);
 			}
@@ -184,6 +196,10 @@ public class VoiceQuery {
 		}
 	}
 
+	/**
+	 * generates a search term from the question data
+	 * @return search term
+	 */
 	public String GenerateTerm()
     {
         String term = "";
